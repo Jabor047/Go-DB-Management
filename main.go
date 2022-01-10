@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 )
 
 const DB_NAME = "freeblebase.db"
@@ -66,6 +67,50 @@ func main() {
 			log.Fatal("could not add item %w", err)
 		}
 		fmt.Printf("Item added: %s\n", os.Args[3])
+	
+	case "get_image":
+		if len(os.Args) < 3 {
+			log.Fatal("get_image <image_id>")
+		}
+
+		item_id, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			log.Fatal("image_id should be int")
+		}
+
+		err = s5_dbase.GetImage(db, item_id, os.Stdout)
+		if err != nil {
+			log.Fatal(err)
+		}
+	
+	case "search_items":
+		if len(os.Args) < 3 {
+			log.Fatal("search_items <search term>")
+		}
+
+		list, err := s5_dbase.SearchItem(db, os.Args[2])
+		if err != nil {
+			log.Fatal("could not find items: %w", err)
+		}
+
+		for k, v := range list {
+			fmt.Printf("Item %d = %v\n", k, v)
+		}
+	case "set_receiver":
+		if len(os.Args) < 4 {
+			log.Fatal("set_receiver <item_id> <receiver_id>")
+		}
+		
+		i_id, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			log.Fatal("item_id should be int")
+		}
+
+		if err = s5_dbase.SetReceiver(db, i_id, os.Args[3]); err != nil {
+			log.Fatal("could not set receiver %w", err)
+		}
+
+		println("reciever set")
 	default:
 		fmt.Printf("TODO: Help Info....\n")
 	}
